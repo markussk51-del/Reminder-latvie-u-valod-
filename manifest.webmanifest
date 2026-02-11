@@ -1,0 +1,15 @@
+{
+  "name": "Atgādinājumi",
+  "short_name": "Atgādinājumi",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0b1020",
+  "theme_color": "#0b1020",
+  "icons": [
+    {
+      "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAF0lEQVR42u3BAQ0AAADCoPdPbQ43oAAAAAAAAAAAwG8GJQAAAZ3qk4QAAAAASUVORK5CYII=",
+      "sizes": "64x64",
+      "type": "image/png"
+    }
+  ]
+}
