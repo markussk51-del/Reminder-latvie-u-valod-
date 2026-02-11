@@ -1,13 +1,9 @@
 <!doctype html>
 <html lang="lv">
 <head>
-  <link rel="icon" href="logo.png">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Atgādinājumi</title>
-
-  <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#0b1020">
 
   <style>
     :root{
@@ -43,15 +39,22 @@
       width: 100%; padding: 12px 12px; border-radius: 12px; border: 1px solid var(--stroke);
       background: #0b102055; color: var(--text); outline: none; font-size: 14px;
     }
+    input::placeholder{ color:#95a3c933; }
     input:focus, select:focus{ border-color: #7c5cff88; box-shadow: 0 0 0 3px #7c5cff22; }
     .row{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
     .btn{
       border: 1px solid var(--stroke); background: #0b102055; color: var(--text);
       padding: 12px 12px; border-radius: 12px; cursor:pointer; font-weight: 800;
+      transition: transform .05s ease, border-color .15s ease, background .15s ease;
+      user-select:none;
     }
+    .btn:hover{ border-color:#ffffff33; background:#0b102077; }
+    .btn:active{ transform: translateY(1px); }
     .btn.primary{ background: linear-gradient(135deg, #7c5cff, #22c55e); border:none; color:#071018; }
     .btn.warn{ border-color:#f59e0b55; }
     .btn.danger{ border-color:#ef444455; }
+
     .hint{ margin-top: 10px; font-size: 12px; color: var(--muted); line-height: 1.35; }
 
     .listHeader{
@@ -63,17 +66,26 @@
     .pill{
       font-size: 12px; color: var(--muted); border: 1px solid var(--stroke);
       padding: 6px 10px; border-radius: 999px; background: #0b102033; cursor:pointer;
+      user-select:none;
     }
     .pill.active{ border-color:#7c5cff66; color: var(--text); background:#7c5cff22; }
+
     .items{ padding: 10px 10px 12px; display:flex; flex-direction:column; gap: 10px; }
     .item{
       border: 1px solid var(--stroke); background: #0b102044; border-radius: 14px;
       padding: 12px 12px; display:grid; grid-template-columns: 1fr auto; gap: 10px; align-items:center;
     }
-    .task{ font-size: 14px; font-weight: 900; white-space: nowrap; overflow:hidden; text-overflow: ellipsis; }
-    .meta{ font-size: 12px; color: var(--muted); display:flex; align-items:center; gap: 8px; flex-wrap: wrap; }
+    .task{
+      font-size: 14px; font-weight: 950;
+      white-space: nowrap; overflow:hidden; text-overflow: ellipsis;
+    }
+    .meta{
+      font-size: 12px; color: var(--muted);
+      display:flex; align-items:center; gap: 8px; flex-wrap: wrap;
+    }
     .statusDot{ width: 8px; height:8px; border-radius:999px; background:#94a3b8; display:inline-block; }
     .statusDot.upcoming{ background:#7c5cff; } .statusDot.due{ background:#f59e0b; } .statusDot.done{ background:#22c55e; }
+
     .actions{ display:flex; gap: 8px; flex-wrap: wrap; justify-content:flex-end; }
     .small{ padding: 9px 10px; border-radius: 12px; font-size: 12px; font-weight: 900; }
     .empty{ padding: 18px; color: var(--muted); font-size: 13px; text-align:center; }
@@ -86,12 +98,14 @@
     }
     .toast.show{ opacity:1; transform: translateX(-50%) translateY(-6px); }
 
+    /* In-app notification banner */
     .banner{
       position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
       width: min(720px, calc(100% - 24px));
       background:#0b1020e6; border:1px solid var(--stroke); backdrop-filter: blur(10px);
       border-radius: 16px; box-shadow: var(--shadow);
-      padding: 12px 12px; display:none;
+      padding: 12px 12px;
+      display:none;
     }
     .banner.show{ display:flex; align-items:center; justify-content:space-between; gap: 10px; }
     .banner .btext{ min-width:0; }
@@ -103,14 +117,11 @@
 
 <body>
   <div class="app">
+    <!-- Left: create -->
     <section class="panel">
       <header>
         <div class="title">
-          <h1>
-  <img src="logo.png" style="height:28px; vertical-align:middle; margin-right:8px;">
-  Atgādinājumi
-</h1>
-
+          <h1>⏰ Atgādinājumi</h1>
           <div class="badge" id="clock">--:--:--</div>
         </div>
       </header>
@@ -118,9 +129,6 @@
       <div class="content">
         <button class="btn primary" id="enableAudioBtn">🔊 Ieslēgt skaņu</button>
         <div class="hint" id="audioHint">Skaņa ir izslēgta līdz brīdim, kad nospied šo pogu (pārlūka drošības dēļ).</div>
-
-        <button class="btn" id="enableNotifBtn" style="margin-top:10px;">📲 Ieslēgt paziņojumus</button>
-        <div class="hint" id="notifHint">Paziņojumi strādā vislabāk, ja šo pieliec uz sākuma ekrāna (PWA).</div>
 
         <label>Ko atgādināt</label>
         <input id="task" type="text" placeholder="Piemēram: iznest miskasti" maxlength="120" />
@@ -163,12 +171,13 @@
         </div>
 
         <div class="hint">
-          • iPhone: paziņojumi no web ir ierobežoti; labāk “Add to Home Screen”.<br/>
-          • Android + Chrome: paziņojumi parasti strādā vislabāk.
+          • iPhone drošības dēļ web aplikācijas fonā nav 100% stabilas.<br/>
+          • Tāpēc ir poga “Kalendārs” — tas dod sistēmas līmeņa paziņojumu.
         </div>
       </div>
     </section>
 
+    <!-- Right: list -->
     <section class="panel">
       <div class="listHeader">
         <h2>Saraksts</h2>
@@ -183,6 +192,7 @@
     </section>
   </div>
 
+  <!-- In-app banner -->
   <div class="banner" id="banner">
     <div class="btext">
       <div class="btitle" id="btitle">Atgādinājums</div>
@@ -198,16 +208,12 @@
   <div class="toast" id="toast">OK</div>
 
 <script>
-  // ===== SW register (required for PWA + notifications) =====
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./sw.js").catch(()=>{});
-  }
-
   // ===== Storage =====
-  const KEY = "reminders_pwa_v1";
+  const KEY = "reminders_calendar_v1";
   const load = () => { try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch { return []; } };
   const save = (arr) => localStorage.setItem(KEY, JSON.stringify(arr));
 
+  // ===== Utilities =====
   const pad = (n) => String(n).padStart(2, "0");
   const fmtDateTime = (ms) => {
     const d = new Date(ms);
@@ -222,7 +228,23 @@
     return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
   };
 
-  // ===== Audio =====
+  function toast(msg){
+    const el = document.getElementById("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    setTimeout(() => el.classList.remove("show"), 1700);
+  }
+
+  function escapeHtml(s){
+    return String(s)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  // ===== Audio (requires user gesture) =====
   let audioEnabled = false;
   let audioCtx = null;
 
@@ -241,6 +263,7 @@
 
   function playTone(kind="beep", seconds=1.2) {
     if (!audioEnabled || !audioCtx) return;
+
     const t0 = audioCtx.currentTime;
     const o = audioCtx.createOscillator();
     const g = audioCtx.createGain();
@@ -256,8 +279,11 @@
     g.gain.exponentialRampToValueAtTime(0.35, t0 + 0.02);
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + seconds);
 
-    o.connect(g); g.connect(audioCtx.destination);
-    o.start(t0); o.stop(t0 + seconds);
+    o.connect(g);
+    g.connect(audioCtx.destination);
+
+    o.start(t0);
+    o.stop(t0 + seconds);
   }
 
   function playBurst(kind){
@@ -266,41 +292,7 @@
     setTimeout(() => playTone(kind, 1.0), 1800);
   }
 
-  // ===== Notifications (in-page) =====
-  async function enableNotifications(){
-    if (!("Notification" in window)) {
-      document.getElementById("notifHint").textContent = "Šis pārlūks neatbalsta paziņojumus.";
-      return;
-    }
-    const perm = await Notification.requestPermission();
-    document.getElementById("notifHint").textContent =
-      perm === "granted" ? "Paziņojumi ieslēgti ✅" : "Paziņojumi nav atļauti (Denied).";
-  }
-
-  function showNotification(title, body){
-    if (!("Notification" in window)) return;
-    if (Notification.permission !== "granted") return;
-
-    // in many phones this works only reliably if app is installed as PWA
-    try{
-      new Notification(title, { body });
-    }catch(_){}
-  }
-
-  function toast(msg){
-    const el = document.getElementById("toast");
-    el.textContent = msg;
-    el.classList.add("show");
-    setTimeout(() => el.classList.remove("show"), 1700);
-  }
-
-  function escapeHtml(s){
-    return String(s)
-      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;").replaceAll("'","&#039;");
-  }
-
-  // ===== Banner =====
+  // ===== In-app banner =====
   let activeBannerId = null;
   function showBanner(r){
     activeBannerId = r.id;
@@ -312,10 +304,77 @@
     document.getElementById("banner").classList.remove("show");
   }
 
-  // ===== State =====
-  let reminders = load();
+  // ===== Calendar (.ics) export =====
+  function downloadICS({ title, description, startMs, durationMin = 5 }) {
+    const pad2 = (n) => String(n).padStart(2, "0");
+
+    // ICS uses UTC timestamps: YYYYMMDDTHHMMSSZ
+    const toICSDateUTC = (ms) => {
+      const d = new Date(ms);
+      return (
+        d.getUTCFullYear() +
+        pad2(d.getUTCMonth() + 1) +
+        pad2(d.getUTCDate()) +
+        "T" +
+        pad2(d.getUTCHours()) +
+        pad2(d.getUTCMinutes()) +
+        pad2(d.getUTCSeconds()) +
+        "Z"
+      );
+    };
+
+    const uid = `${Date.now()}-${Math.random().toString(16).slice(2)}@atgadinajumi`;
+    const dtstamp = toICSDateUTC(Date.now());
+    const dtstart = toICSDateUTC(startMs);
+    const dtend = toICSDateUTC(startMs + durationMin * 60 * 1000);
+
+    const esc = (s) =>
+      String(s || "")
+        .replaceAll("\\", "\\\\")
+        .replaceAll("\n", "\\n")
+        .replaceAll(",", "\\,")
+        .replaceAll(";", "\\;");
+
+    // VALARM pops up at event time.
+    const ics =
+`BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Atgadinajumi//LV//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:${uid}
+DTSTAMP:${dtstamp}
+DTSTART:${dtstart}
+DTEND:${dtend}
+SUMMARY:${esc(title)}
+DESCRIPTION:${esc(description)}
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:${esc(title)}
+END:VALARM
+END:VEVENT
+END:VCALENDAR`;
+
+    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "atgadinajums.ics";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+
+  // ===== App State =====
+  let reminders = load(); // {id, text, atMs, sound, repeat, done, firedAtMs?}
   let filter = "all";
 
+  // ===== Elements =====
   const taskEl = document.getElementById("task");
   const dateEl = document.getElementById("date");
   const timeEl = document.getElementById("time");
@@ -324,14 +383,14 @@
   const itemsEl = document.getElementById("items");
   const emptyEl = document.getElementById("empty");
 
+  // Defaults
   dateEl.value = todayISO();
   {
     const d = new Date(Date.now() + 10*60*1000);
     timeEl.value = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
 
-  function repeatLabel(v){ return v==="daily" ? "katru dienu" : v==="weekly" ? "katru nedēļu" : "nē"; }
-
+  // ===== Render =====
   function getStatus(r){
     const now = Date.now();
     if (r.done) return {label:"Pabeigts", dot:"done"};
@@ -346,15 +405,26 @@
     return true;
   }
 
+  function repeatLabel(v){
+    if (v==="daily") return "katru dienu";
+    if (v==="weekly") return "katru nedēļu";
+    return "nē";
+  }
+
   function render(){
-    const list = reminders.slice().sort((a,b)=>a.atMs-b.atMs).filter(passesFilter);
+    const list = reminders
+      .slice()
+      .sort((a,b) => a.atMs - b.atMs)
+      .filter(passesFilter);
+
     itemsEl.innerHTML = "";
-    emptyEl.style.display = list.length ? "none" : "block";
+    emptyEl.style.display = (list.length === 0) ? "block" : "none";
 
     for (const r of list){
       const st = getStatus(r);
       const div = document.createElement("div");
       div.className = "item";
+
       div.innerHTML = `
         <div>
           <div class="task" title="${escapeHtml(r.text)}">${escapeHtml(r.text)}</div>
@@ -369,6 +439,7 @@
         <div class="actions">
           ${!r.done ? `<button class="btn small warn" data-act="snooze" data-id="${r.id}">Snaust 5m</button>` : ``}
           ${!r.done ? `<button class="btn small" data-act="done" data-id="${r.id}">Pabeigts</button>` : `<button class="btn small" data-act="undo" data-id="${r.id}">Atjaunot</button>`}
+          <button class="btn small" data-act="ics" data-id="${r.id}">Kalendārs</button>
           <button class="btn small danger" data-act="del" data-id="${r.id}">Dzēst</button>
         </div>
       `;
@@ -376,11 +447,16 @@
     }
   }
 
-  function addReminder(){
+  // ===== Add =====
+  function addReminder() {
     const text = taskEl.value.trim();
     const date = dateEl.value;
     const time = timeEl.value;
-    if (!text || !date || !time){ alert("Ievadi tekstu, datumu un laiku."); return; }
+
+    if (!text || !date || !time) {
+      alert("Ievadi tekstu, datumu un laiku!");
+      return;
+    }
 
     const [hh, mm] = time.split(":").map(Number);
     const [yy, mo, dd] = date.split("-").map(Number);
@@ -388,7 +464,12 @@
 
     reminders.push({
       id: crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2),
-      text, atMs: at, sound: soundEl.value, repeat: repeatEl.value, done:false, firedAtMs:null
+      text,
+      atMs: at,
+      sound: soundEl.value,
+      repeat: repeatEl.value,
+      done: false,
+      firedAtMs: null
     });
 
     save(reminders);
@@ -398,21 +479,40 @@
     taskEl.focus();
   }
 
+  // ===== Actions =====
   function setDone(id, done){
-    const r = reminders.find(x=>x.id===id); if (!r) return;
-    r.done = done; save(reminders); render();
+    const r = reminders.find(x => x.id === id);
+    if (!r) return;
+    r.done = done;
+    save(reminders);
+    render();
   }
-  function del(id){ reminders = reminders.filter(x=>x.id!==id); save(reminders); render(); }
+
+  function del(id){
+    reminders = reminders.filter(x => x.id !== id);
+    save(reminders);
+    render();
+  }
+
   function snooze(id, minutes=5){
-    const r = reminders.find(x=>x.id===id); if (!r) return;
+    const r = reminders.find(x => x.id === id);
+    if (!r) return;
     r.atMs = Date.now() + minutes*60*1000;
     r.firedAtMs = null;
-    save(reminders); render(); toast("Snaust ⏳");
+    save(reminders);
+    render();
+    toast("Snaust ⏳");
   }
+
   function clearAll(){
     if (!confirm("Tiešām dzēst visus atgādinājumus?")) return;
-    reminders = []; save(reminders); render(); toast("Dzēsts");
+    reminders = [];
+    save(reminders);
+    render();
+    toast("Dzēsts");
   }
+
+  // ===== Scheduler (works only while app is running) =====
   function bumpRepeat(r){
     const d = new Date(r.atMs);
     if (r.repeat === "daily")  d.setDate(d.getDate() + 1);
@@ -421,18 +521,13 @@
     r.firedAtMs = null;
   }
 
-  function fireReminder(r){
-    if (audioEnabled) playBurst(r.sound);
-    showBanner(r);
-    showNotification("Atgādinājums", r.text);
-  }
-
   function checkDue(){
     const now = Date.now();
     let changed = false;
 
     for (const r of reminders){
       if (r.done) continue;
+
       const due = r.atMs <= now;
       const alreadyFired = r.firedAtMs === r.atMs;
 
@@ -440,47 +535,72 @@
         r.firedAtMs = r.atMs;
         changed = true;
 
-        fireReminder(r);
+        if (audioEnabled) playBurst(r.sound);
+        showBanner(r);
 
-        if (r.repeat !== "none") bumpRepeat(r);
+        if (r.repeat !== "none"){
+          bumpRepeat(r);
+        }
       }
     }
 
-    if (changed){ save(reminders); render(); }
+    if (changed){
+      save(reminders);
+      render();
+    }
   }
 
   // ===== Events =====
   document.getElementById("enableAudioBtn").addEventListener("click", enableAudio);
-  document.getElementById("enableNotifBtn").addEventListener("click", enableNotifications);
   document.getElementById("addBtn").addEventListener("click", addReminder);
   document.getElementById("testBtn").addEventListener("click", () => {
     if (!audioEnabled) { alert("Vispirms nospied: Ieslēgt skaņu"); return; }
     playBurst(soundEl.value);
-    showNotification("Testa paziņojums", "Ja redzi šo, paziņojumi strādā.");
   });
   document.getElementById("clearBtn").addEventListener("click", clearAll);
-  taskEl.addEventListener("keydown", (e)=>{ if (e.key==="Enter") addReminder(); });
 
-  itemsEl.addEventListener("click", (e)=>{
-    const btn = e.target.closest("button"); if (!btn) return;
+  taskEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") addReminder();
+  });
+
+  itemsEl.addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+
     const act = btn.getAttribute("data-act");
     const id  = btn.getAttribute("data-id");
     if (!act || !id) return;
-    if (act==="done") setDone(id,true);
-    if (act==="undo") setDone(id,false);
-    if (act==="del")  del(id);
-    if (act==="snooze") snooze(id,5);
+
+    if (act === "done") setDone(id, true);
+    if (act === "undo") setDone(id, false);
+    if (act === "del")  del(id);
+    if (act === "snooze") snooze(id, 5);
+
+    if (act === "ics") {
+      const r = reminders.find(x => x.id === id);
+      if (!r) return;
+
+      downloadICS({
+        title: "Atgādinājums",
+        description: r.text,
+        startMs: r.atMs,
+        durationMin: 5
+      });
+
+      toast("Kalendārs 📅");
+    }
   });
 
-  document.querySelectorAll(".pill").forEach(p=>{
-    p.addEventListener("click", ()=>{
-      document.querySelectorAll(".pill").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".pill").forEach(p => {
+    p.addEventListener("click", () => {
+      document.querySelectorAll(".pill").forEach(x => x.classList.remove("active"));
       p.classList.add("active");
       filter = p.getAttribute("data-filter") || "all";
       render();
     });
   });
 
+  // Banner buttons
   document.getElementById("bclose").addEventListener("click", hideBanner);
   document.getElementById("bdone").addEventListener("click", ()=>{
     if (activeBannerId) setDone(activeBannerId, true);
@@ -491,10 +611,13 @@
     hideBanner();
   });
 
-  setInterval(()=>document.getElementById("clock").textContent = nowClock(), 250);
+  // clock + periodic check
+  setInterval(() => document.getElementById("clock").textContent = nowClock(), 250);
   setInterval(checkDue, 1000);
 
-  render(); checkDue();
+  // initial
+  render();
+  checkDue();
 </script>
 </body>
 </html>
